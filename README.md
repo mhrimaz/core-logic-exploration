@@ -58,7 +58,7 @@ The addition constraints on the four columns of the puzzle can be written as the
 
 Where C10, C100, and C1000 are auxiliary variables representing the digit carried over into the tens, hundreds, or thousands column.
 
-# Solution
+## Solution
 ```clojure
 (defn crypArethmeticPuzzle [q]
   (logic/fresh [T W O F U R TWO FOUR]
@@ -80,4 +80,81 @@ Where C10, C100, and C1000 are auxiliary variables representing the digit carrie
 ; => ([734 734 1468] [765 765 1530] 
 ; [836 836 1672] [846 846 1692] 
 ; [867 867 1734] [928 928 1856] [938 938 1876])
+```
+# Sudoku
+The goal of Sudoku is to fill a 9×9 grid with numbers so that each row, column and 3×3 section contain all of the digits between 1 and 9. The constraints are:
+* Each column must contain one occurrence of each digit from 1–9.
+* Each row must contain one occurrence of each digit from 1–9.
+* Each 3 x 3 subsection must contain one occurrence of each digit from 1–9
+
+## Solution
+```clojure
+; Problem representation
+; https://www.sudoku.ws/hard-20.htm
+(def s1 '[1 - - - 7 - - 3 -
+          8 3 - 6 - - - - -
+          - - 2 9 - - 6 - 8
+          6 - - - - 4 9 - 7
+          - 9 - - - - - 5 -
+          3 - 7 5 - - - - 4
+          2 - 3 - - 9 1 - -
+          - - - - - 2 - 4 3
+          - 4 - - 8 - - - 9])
+
+(defn rowify [board]
+  (->> board
+       (partition 9)
+       (map vec)
+       vec))
+       
+(defn colify [rows]
+  (apply map vector rows))
+  
+(defn gridify [rows]
+  (partition 9
+             (for [row (range 0 9 3)
+                   col (range 0 9 3)
+                   x (range row (+ row 3))
+                   y (range col (+ col 3))]
+               (get-in rows [x y]))))  
+               
+(def initLogicBoard #(repeatedly 81 logic/lvar))
+
+(defn init [[lv & lvs] [cell & cells]]
+  "bind known number values to certain logic variable"
+  (if lv
+    (logic/fresh []
+                 (if (= '- cell)
+                   logic/succeed
+                   (logic/== lv cell))
+                 (init lvs cells))
+    logic/succeed))
+
+(defn solveSudoku [board]
+  (let [lvars (initLogicBoard)
+        rows (rowify lvars)
+        cols (colify rows)
+        grids (gridify rows)]
+    (logic/run 1 [q]
+               (init lvars board)
+               (logic/everyg #(fd/in % (fd/interval 1 9)) lvars)
+               (logic/everyg fd/distinct rows)
+               (logic/everyg fd/distinct cols)
+               (logic/everyg fd/distinct grids)
+               (logic/== q lvars))))
+               
+(solveSudoku s1)              
+
+(comment 
+  "
+  1 6 9 8 7 5 4 3 2
+  8 3 4 6 2 1 7 9 5
+  5 7 2 9 4 3 6 1 8
+  6 2 5 1 3 4 9 8 7
+  4 9 8 2 6 7 3 5 1
+  3 1 7 5 9 8 2 6 4
+  2 8 3 4 5 9 1 7 6
+  9 5 6 7 1 2 8 4 3
+  7 4 1 3 8 6 5 2 9 ")
+  
 ```
