@@ -86,6 +86,9 @@ The goal of Sudoku is to fill a 9×9 grid with numbers so that each row, column 
 * Each column must contain one occurrence of each digit from 1–9.
 * Each row must contain one occurrence of each digit from 1–9.
 * Each 3 x 3 subsection must contain one occurrence of each digit from 1–9
+This is the example that we want to solve:
+
+![Sudoku](https://github.com/mhrimaz/core-logic-exploration/blob/master/Sudoku.png)
 
 ## Solution
 ```clojure
